@@ -1,4 +1,4 @@
-// #![windows_subsystem = "windows"] // do not display a console window on startup on Windows
+#![windows_subsystem = "windows"] // do not display a console window on startup on Windows
 mod app;
 mod character;
 mod ui;
