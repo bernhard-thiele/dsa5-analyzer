@@ -77,7 +77,7 @@ impl ApCalculator {
         }
 
         // Add liturgies & ceremonies AP calculation
-        let liturgies_ceremonies_ap = Self::calculate_spells_and_rituals_ap(character);
+        let liturgies_ceremonies_ap = Self::calculate_liturgies_and_ceremonies_ap(character);
         if liturgies_ceremonies_ap > 0 {
             categories.insert("Liturgies/Ceremonies".to_string(), liturgies_ceremonies_ap);
         }
