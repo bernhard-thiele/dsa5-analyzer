@@ -27,7 +27,7 @@ A desktop application for analyzing DSA5 (Das Schwarze Auge) character sheets ex
 
 Download the latest portable executable for your platform from the [Releases page](https://github.com/bernhard-thiele/dsa5-analyzer/releases):
 
-- **Windows**: `dsa5-analyzer-windows.exe`
+- **Windows**: `dsa5-analyzer.exe`
 - **macOS**, **Linux**: Currently untested platforms. Build from source recommended
 
 No installation required - just download and run!
