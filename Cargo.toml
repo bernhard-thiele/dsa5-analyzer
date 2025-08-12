@@ -1,0 +1,20 @@
+[package]
+name = "dsa5-analyzer"
+version = "1.0.0"
+edition = "2021"
+description = "A character analyzer for DSA5 (Das Schwarze Auge) characters exported from Foundry VTT"
+license = "BSD-3-Clause"
+repository = "https://github.com/yourusername/dsa5-analyzer"
+keywords = ["dsa", "rpg", "character", "analyzer", "foundry-vtt"]
+categories = ["games", "gui"]
+
+[dependencies]
+egui = "0.32"
+eframe = "0.32"
+egui_extras = "0.32"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rfd = "0.14"  # For file dialogs
+anyhow = "1.0"  # For error handling
+image = "0.25"
+reqwest = { version = "0.12", features = ["blocking"] }
