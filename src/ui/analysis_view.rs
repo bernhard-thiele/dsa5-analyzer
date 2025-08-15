@@ -14,6 +14,30 @@ impl ApAnalysis {
         ui.heading("🔮 AP Analysis");
         ui.separator();
 
+        // Totally spent AP section
+        self.show_total_spent(ui, character);
+
+        ui.add_space(20.0);
+
+        // AP by category section
+        self.show_ap_by_category(ui, character);
+
+        // Collapsable detailed AP items section
+        self.show_ap_items_details(ui, character);
+
+        // Add debug info
+        ui.add_space(15.0);
+        self.show_debug_characteristics_breakdown(ui, character);
+        self.show_debug_skills_breakdown(ui, character);
+        self.show_debug_combat_skills_breakdown(ui, character);
+        self.show_debug_spells_rituals_breakdown(ui, character);
+        self.show_debug_liturgies_ceremonies_breakdown(ui, character);
+        self.show_debug_item_info(ui, character);
+
+        ui.add_space(15.0);
+    }
+
+    fn show_total_spent(&self, ui: &mut Ui, character: &Character) {
         let calculated_total_spent_ap = ApCalculator::calculate_total_spent_ap(character);
 
         let foundry_spent_ap = character.system
@@ -80,10 +104,9 @@ impl ApAnalysis {
                     });
                 }
             });
+    }
 
-        ui.add_space(20.0);
-
-        // AP by category section
+    fn show_ap_by_category(&self, ui: &mut Ui, character: &Character) {
         ui.heading("📊 AP by Category");
         ui.separator();
 
@@ -108,11 +131,11 @@ impl ApAnalysis {
                 });
             }
         }
+    }
 
-        // Detailed AP items section
+    fn show_ap_items_details(&self, ui: &mut Ui, character: &Character) {
         ui.add_space(15.0);
         ui.collapsing("📝 AP Items Details", |ui| {
-
             let ap_items = ApCalculator::get_ap_items_breakdown(character);
 
             // Use the remaining available height for the scroll area
@@ -176,19 +199,6 @@ impl ApAnalysis {
                     }
                 });
         });
-
-        // Add debug info
-        ui.add_space(15.0);
-        self.show_debug_characteristics_breakdown(ui, character);
-        self.show_debug_skills_breakdown(ui, character);
-        self.show_debug_combat_skills_breakdown(ui, character);
-        self.show_debug_spells_rituals_breakdown(ui, character);
-        self.show_debug_liturgies_ceremonies_breakdown(ui, character);
-        self.show_debug_item_info(ui, character);
-
-        ui.add_space(15.0);
-
-
     }
 
     fn show_debug_skills_breakdown(&self, ui: &mut Ui, character: &Character) {
