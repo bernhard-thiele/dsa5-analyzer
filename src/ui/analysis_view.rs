@@ -2,8 +2,20 @@ use crate::character::Character;
 use crate::character::ApCalculator;
 use eframe::egui;
 use egui::Ui;
+use std::f32::consts::PI;
 
 pub struct ApAnalysis;
+
+// Pie chart slice data
+#[derive(Debug, Clone)]
+struct PieSlice {
+    label: String,
+    value: i32,
+    percentage: f32,
+    color: egui::Color32,
+    start_angle: f32,
+    end_angle: f32,
+}
 
 impl ApAnalysis {
     pub fn new() -> Self {
@@ -114,24 +126,264 @@ impl ApAnalysis {
 
         if ap_by_category.is_empty() {
             ui.label("No AP items found.");
-        } else {
-            let mut sorted_categories: Vec<_> = ap_by_category.iter().collect();
-            // Sort by AP value descending, then by category name ascending for stable ordering
-            sorted_categories.sort_by(|a, b| {
-                match b.1.cmp(a.1) {
-                    std::cmp::Ordering::Equal => a.0.cmp(b.0), // Secondary sort by name
-                    other => other,
-                }
+            return;
+        }
+
+        // Create horizontal layout for pie chart and legend/details
+        ui.horizontal(|ui| {
+            // Left side: Pie chart
+            ui.vertical(|ui| {
+                let pie_slices = self.prepare_pie_data(&ap_by_category);
+                self.draw_pie_chart(ui, &pie_slices, 120.0);
             });
 
-            for (category, ap_value) in sorted_categories {
-                ui.horizontal(|ui| {
-                    ui.label(format!("{}:", category));
-                    ui.label(format!("{}", ap_value));
+            ui.add_space(20.0);
+
+            // Right side: Legend and detailed breakdown
+            ui.vertical(|ui| {
+                ui.heading("📋 Breakdown");
+                ui.separator();
+
+                let mut sorted_categories: Vec<_> = ap_by_category.iter().collect();
+                // Sort by AP value descending, then by category name ascending for stable ordering
+                sorted_categories.sort_by(|a, b| {
+                    match b.1.cmp(a.1) {
+                        std::cmp::Ordering::Equal => a.0.cmp(b.0), // Secondary sort by name
+                        other => other,
+                    }
                 });
+
+                let total_ap: i32 = sorted_categories.iter().map(|(_, &ap)| ap).sum();
+
+                for (category, &ap_value) in sorted_categories {
+                    let percentage = if total_ap > 0 {
+                        (ap_value as f32 / total_ap as f32) * 100.0
+                    } else {
+                        0.0
+                    };
+
+                    ui.horizontal(|ui| {
+                        // Color indicator (small rectangle)
+                        let color = self.get_category_color(category, &ap_by_category);
+                        let rect = egui::Rect::from_min_size(
+                            ui.cursor().min,
+                            egui::Vec2::new(12.0, 12.0)
+                        );
+                        ui.painter().rect_filled(rect, 2.0, color);
+                        ui.add_space(16.0);
+
+                        ui.label(format!("{}:", category));
+                        ui.label(format!("{} AP ({:.1}%)", ap_value, percentage));
+                    });
+                }
+            });
+        });
+    }
+
+    fn prepare_pie_data(&self, ap_by_category: &std::collections::HashMap<String, i32>) -> Vec<PieSlice> {
+        let mut sorted_categories: Vec<_> = ap_by_category.iter().collect();
+        sorted_categories.sort_by(|a, b| b.1.cmp(a.1)); // Sort by value descending
+
+        let total_ap: i32 = sorted_categories.iter().map(|(_, &ap)| ap).sum();
+        if total_ap == 0 {
+            return Vec::new();
+        }
+
+        let mut slices = Vec::new();
+        let mut current_angle = -PI / 2.0; // Start at top (12 o'clock)
+
+        // Take top 3 categories
+        let top_categories = sorted_categories.iter().take(3);
+        let mut remaining_ap = 0;
+
+        for (i, (category, &ap_value)) in top_categories.enumerate() {
+            let percentage = ap_value as f32 / total_ap as f32;
+            let angle_size = percentage * 2.0 * PI;
+
+            slices.push(PieSlice {
+                label: category.to_string(),
+                value: ap_value,
+                percentage: percentage * 100.0,
+                color: self.get_slice_color(i),
+                start_angle: current_angle,
+                end_angle: current_angle + angle_size,
+            });
+
+            current_angle += angle_size;
+        }
+
+        // Calculate remaining AP for "Rest" slice
+        remaining_ap = sorted_categories.iter().skip(3).map(|(_, &ap)| ap).sum();
+
+        if remaining_ap > 0 {
+            let percentage = remaining_ap as f32 / total_ap as f32;
+            let angle_size = percentage * 2.0 * PI;
+
+            slices.push(PieSlice {
+                label: "Others".to_string(),
+                value: remaining_ap,
+                percentage: percentage * 100.0,
+                color: self.get_slice_color(3), // Gray for "Others"
+                start_angle: current_angle,
+                end_angle: current_angle + angle_size,
+            });
+        }
+
+        slices
+    }
+
+    fn draw_pie_chart(&self, ui: &mut egui::Ui, slices: &[PieSlice], radius: f32) {
+        let desired_size = egui::Vec2::splat(radius * 2.2); // Slightly larger for labels
+        let (response, painter) = ui.allocate_painter(desired_size, egui::Sense::hover());
+
+        let center = response.rect.center();
+
+        // Draw pie slices
+        for slice in slices {
+            self.draw_pie_slice(&painter, center, radius, slice);
+        }
+
+        // Add hover interactions
+        if let Some(hover_pos) = response.hover_pos() {
+            if let Some(hovered_slice) = self.get_slice_at_position(center, radius, hover_pos, slices) {
+                // Show tooltip
+                egui::show_tooltip_at_pointer(
+                    ui.ctx(),
+                    egui::LayerId::new(egui::Order::Tooltip, egui::Id::new("pie_tooltip")),
+                    egui::Id::new("pie_tooltip"),
+                    |ui: &mut egui::Ui| {
+                        ui.label(format!("{}: {} AP ({:.1}%)",
+                                         hovered_slice.label,
+                                         hovered_slice.value,
+                                         hovered_slice.percentage
+                        ));
+                    }
+                );
             }
         }
     }
+
+    fn draw_pie_slice(&self, painter: &egui::Painter, center: egui::Pos2, radius: f32, slice: &PieSlice) {
+        let num_segments = ((slice.end_angle - slice.start_angle).abs() * radius / 2.0).max(8.0) as usize;
+
+        let mut points = vec![center]; // Center point
+
+        // Generate points along the arc
+        for i in 0..=num_segments {
+            let t = i as f32 / num_segments as f32;
+            let angle = slice.start_angle + t * (slice.end_angle - slice.start_angle);
+            let x = center.x + radius * angle.cos();
+            let y = center.y + radius * angle.sin();
+            points.push(egui::Pos2::new(x, y));
+        }
+
+        // Draw filled slice
+        painter.add(egui::Shape::convex_polygon(
+            points.clone(),
+            slice.color,
+            egui::Stroke::new(1.5, egui::Color32::WHITE), // White border between slices
+        ));
+    }
+
+    fn get_slice_at_position<'a>(&self, center: egui::Pos2, radius: f32, pos: egui::Pos2, slices: &'a [PieSlice]) -> Option<&'a PieSlice> {
+        let dx = pos.x - center.x;
+        let dy = pos.y - center.y;
+        let distance = (dx * dx + dy * dy).sqrt();
+
+        // Check if point is within circle
+        if distance > radius {
+            return None;
+        }
+
+        // Calculate angle
+        let mut angle = dy.atan2(dx);
+        // Convert to our coordinate system (starting from top)
+        angle = angle + PI / 2.0;
+        if angle < 0.0 {
+            angle += 2.0 * PI;
+        }
+
+        // Find which slice contains this angle
+        for slice in slices {
+            let mut start = slice.start_angle;
+            let mut end = slice.end_angle;
+
+            // Normalize angles to [0, 2π]
+            while start < 0.0 { start += 2.0 * PI; }
+            while end < 0.0 { end += 2.0 * PI; }
+            while start >= 2.0 * PI { start -= 2.0 * PI; }
+            while end >= 2.0 * PI { end -= 2.0 * PI; }
+
+            if start <= end {
+                if angle >= start && angle <= end {
+                    return Some(slice);
+                }
+            } else {
+                // Handle wrap-around case
+                if angle >= start || angle <= end {
+                    return Some(slice);
+                }
+            }
+        }
+
+        None
+    }
+
+    fn get_slice_color(&self, index: usize) -> egui::Color32 {
+        match index {
+            0 => egui::Color32::from_rgb(52, 152, 219),   // Blue
+            1 => egui::Color32::from_rgb(46, 204, 113),   // Green
+            2 => egui::Color32::from_rgb(231, 76, 60),    // Red
+            3 => egui::Color32::from_rgb(149, 165, 166),  // Gray for "Others"
+            _ => egui::Color32::from_rgb(127, 140, 141),  // Darker gray fallback
+        }
+    }
+
+    fn get_category_color(&self, category: &str, ap_by_category: &std::collections::HashMap<String, i32>) -> egui::Color32 {
+        let mut sorted_categories: Vec<_> = ap_by_category.iter().collect();
+        sorted_categories.sort_by(|a, b| b.1.cmp(a.1));
+
+        // Find the index of this category in the sorted list
+        for (i, (cat_name, _)) in sorted_categories.iter().enumerate() {
+            if *cat_name == category {
+                return if i < 3 {
+                    self.get_slice_color(i)
+                } else {
+                    self.get_slice_color(3) // "Others" color
+                };
+            }
+        }
+
+        self.get_slice_color(4) // Fallback
+    }
+
+    // OLD Method
+    // fn show_ap_by_category(&self, ui: &mut Ui, character: &Character) {
+    //     ui.heading("📊 AP by Category");
+    //     ui.separator();
+    //
+    //     let ap_by_category = ApCalculator::get_ap_by_category(character);
+    //
+    //     if ap_by_category.is_empty() {
+    //         ui.label("No AP items found.");
+    //     } else {
+    //         let mut sorted_categories: Vec<_> = ap_by_category.iter().collect();
+    //         // Sort by AP value descending, then by category name ascending for stable ordering
+    //         sorted_categories.sort_by(|a, b| {
+    //             match b.1.cmp(a.1) {
+    //                 std::cmp::Ordering::Equal => a.0.cmp(b.0), // Secondary sort by name
+    //                 other => other,
+    //             }
+    //         });
+    //
+    //         for (category, ap_value) in sorted_categories {
+    //             ui.horizontal(|ui| {
+    //                 ui.label(format!("{}:", category));
+    //                 ui.label(format!("{}", ap_value));
+    //             });
+    //         }
+    //     }
+    // }
 
     fn show_ap_items_details(&self, ui: &mut Ui, character: &Character) {
         ui.add_space(15.0);
