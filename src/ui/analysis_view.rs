@@ -17,6 +17,12 @@ struct PieSlice {
     end_angle: f32,
 }
 
+/// Utility function: Normalize to [0, 2π].
+fn normalize_angle(angle: f32) -> f32 {
+    let normalized = angle % (2.0 * PI);
+    if normalized < 0.0 { normalized + 2.0 * PI } else { normalized }
+}
+
 impl ApAnalysis {
     pub fn new() -> Self {
         Self
@@ -190,11 +196,10 @@ impl ApAnalysis {
         }
 
         let mut slices = Vec::new();
-        let mut current_angle = -PI / 2.0; // Start at top (12 o'clock)
+        let mut current_angle = PI / 2.0;   // Start at top (12 o'clock)
 
         // Take top 3 categories
         let top_categories = sorted_categories.iter().take(3);
-        let mut remaining_ap = 0;
 
         for (i, (category, &ap_value)) in top_categories.enumerate() {
             let percentage = ap_value as f32 / total_ap as f32;
@@ -213,7 +218,7 @@ impl ApAnalysis {
         }
 
         // Calculate remaining AP for "Rest" slice
-        remaining_ap = sorted_categories.iter().skip(3).map(|(_, &ap)| ap).sum();
+        let remaining_ap = sorted_categories.iter().skip(3).map(|(_, &ap)| ap).sum();
 
         if remaining_ap > 0 {
             let percentage = remaining_ap as f32 / total_ap as f32;
@@ -243,22 +248,14 @@ impl ApAnalysis {
             self.draw_pie_slice(&painter, center, radius, slice);
         }
 
-        // Add hover interactions
+        // Add hover interactions using the modern approach
         if let Some(hover_pos) = response.hover_pos() {
             if let Some(hovered_slice) = self.get_slice_at_position(center, radius, hover_pos, slices) {
-                // Show tooltip
-                egui::show_tooltip_at_pointer(
-                    ui.ctx(),
-                    egui::LayerId::new(egui::Order::Tooltip, egui::Id::new("pie_tooltip")),
-                    egui::Id::new("pie_tooltip"),
-                    |ui: &mut egui::Ui| {
-                        ui.label(format!("{}: {} AP ({:.1}%)",
-                                         hovered_slice.label,
-                                         hovered_slice.value,
-                                         hovered_slice.percentage
-                        ));
-                    }
-                );
+                response.on_hover_text_at_pointer(format!("{}: {} AP ({:.1}%)",
+                                                          hovered_slice.label,
+                                                          hovered_slice.value,
+                                                          hovered_slice.percentage
+                ));
             }
         }
     }
@@ -273,7 +270,7 @@ impl ApAnalysis {
             let t = i as f32 / num_segments as f32;
             let angle = slice.start_angle + t * (slice.end_angle - slice.start_angle);
             let x = center.x + radius * angle.cos();
-            let y = center.y + radius * angle.sin();
+            let y = center.y - radius * angle.sin(); // -r*sin(a) because y-axis is flipped in screen coordinates
             points.push(egui::Pos2::new(x, y));
         }
 
@@ -295,32 +292,34 @@ impl ApAnalysis {
             return None;
         }
 
-        // Calculate angle
-        let mut angle = dy.atan2(dx);
-        // Convert to our coordinate system (starting from top)
-        angle = angle + PI / 2.0;
-        if angle < 0.0 {
-            angle += 2.0 * PI;
-        }
+        // egui's coordinate system: (0,0) is top-left, y increases downward
+        let angle = (-dy).atan2(dx); // Note: -dy because y-axis is flipped in screen coordinates
+
+
+        // Normalize to [0, 2π]
+        let normalized_angle = normalize_angle(angle);
+
+        // Debug: uncomment to see what's happening
+        // println!("Mouse pos: ({:.1}, {:.1}), center: ({:.1}, {:.1})", pos.x, pos.y, center.x, center.y);
+        // println!("Calculated angle: {:.3} ({:.1}°)", normalized_angle, normalized_angle.to_degrees());
 
         // Find which slice contains this angle
         for slice in slices {
-            let mut start = slice.start_angle;
-            let mut end = slice.end_angle;
+            let slice_start_angle = normalize_angle(slice.start_angle);
+            let slice_end_angle = normalize_angle(slice.end_angle);
 
-            // Normalize angles to [0, 2π]
-            while start < 0.0 { start += 2.0 * PI; }
-            while end < 0.0 { end += 2.0 * PI; }
-            while start >= 2.0 * PI { start -= 2.0 * PI; }
-            while end >= 2.0 * PI { end -= 2.0 * PI; }
+            // Debug: uncomment to see slice angles
+            // println!("Slice '{}': {:.3}-{:.3} ({:.1}°-{:.1}°)",
+            //     slice.label, slice_start_angle, slice_end_angle,
+            //     slice_start_angle.to_degrees(), slice_end_angle.to_degrees());
 
-            if start <= end {
-                if angle >= start && angle <= end {
+            if slice_start_angle <= slice_end_angle {
+                if normalized_angle >= slice_start_angle && normalized_angle <= slice_end_angle {
                     return Some(slice);
                 }
             } else {
                 // Handle wrap-around case
-                if angle >= start || angle <= end {
+                if normalized_angle >= slice_start_angle || normalized_angle <= slice_end_angle {
                     return Some(slice);
                 }
             }
