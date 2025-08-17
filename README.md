@@ -28,7 +28,7 @@ A desktop application for analyzing DSA5 (Das Schwarze Auge) character sheets ex
 Download the latest portable executable for your platform from the [Releases page](https://github.com/bernhard-thiele/dsa5-analyzer/releases):
 
 - **Windows**: `dsa5-analyzer.exe`
-- **macOS**, **Linux**: Currently untested platforms. Build from source recommended
+- **Linux**, **macOS**: Currently untested platforms. Build from source recommended
 
 No installation required - just download and run!
 
@@ -59,11 +59,11 @@ cargo run --release
 src/
 ├── main.rs                 # Application entry point
 ├── app.rs                  # Application layer (state + coordination)
-├── character/              # 🏗️ DOMAIN LAYER
+├── character/              # 🏗️ Domain Layer
 │   ├── mod.rs              # Domain module coordination
 │   ├── analysis.rs         # AP calculation and game rule logic  
 │   └── data.rs             # Character data structures and data access methods
-└── ui/                     # 🎨 PRESENTATION LAYER
+└── ui/                     # 🎨 Presentation Layer
     ├── mod.rs              # UI module coordination
     ├── analysis_view.rs    # AP analysis dashboard
     ├── character_view.rs   # Character display
