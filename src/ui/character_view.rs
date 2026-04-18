@@ -242,16 +242,38 @@ impl CharacterView {
                                             ));
                                         });
                                         row.col(|ui| {
-                                            ui.label("Base Value:");
+                                            ui.label("Current Value:");
                                         });
                                         row.col(|ui| {
                                             ui.add(egui::Label::new(
-                                                egui::RichText::new(&wounds.base_value().to_string())
+                                                egui::RichText::new(&wounds.value().to_string())
                                                     .strong()
                                                     .color(egui::Color32::from_rgb(50, 150, 50))
                                             ));
                                         });
                                     });
+
+                                    if let Some(characteristics) = &system.characteristics {
+                                        let ko_value = characteristics
+                                            .ko
+                                            .as_ref()
+                                            .map(|ko| ko.nominal_value())
+                                            .unwrap_or_default();
+                                        let base_value = wounds.initial() + 2 * ko_value;
+
+                                        body.row(18.0, |mut row| {
+                                            row.col(|_ui| {}); // Empty first column
+                                            row.col(|ui| {
+                                                ui.label("Base Value:");
+                                            });
+                                            row.col(|ui| {
+                                                ui.add(egui::Label::new(
+                                                    egui::RichText::new(&base_value.to_string())
+                                                        .color(egui::Color32::from_rgb(50, 150, 50))
+                                                ));
+                                            });
+                                        });
+                                    }
 
                                     body.row(18.0, |mut row| {
                                         row.col(|_ui| {}); // Empty first column
@@ -273,10 +295,10 @@ impl CharacterView {
                                         });
                                         row.col(|ui| {
                                             ui.add(egui::Label::new(
-                                                egui::RichText::new(&wounds.modifier.to_string())
-                                                    .color(if wounds.modifier > 0 {
+                                                egui::RichText::new(&wounds.modifier().to_string())
+                                                    .color(if wounds.modifier() > 0 {
                                                         egui::Color32::from_rgb(50, 150, 50)
-                                                    } else if wounds.modifier < 0 {
+                                                    } else if wounds.modifier() < 0 {
                                                         egui::Color32::from_rgb(200, 80, 80)
                                                     } else {
                                                         egui::Color32::GRAY
@@ -284,6 +306,30 @@ impl CharacterView {
                                             ));
                                         });
                                     });
+
+                                    if let Some(characteristics) = &system.characteristics {
+                                        let ko_value = characteristics
+                                            .ko
+                                            .as_ref()
+                                            .map(|ko| ko.nominal_value())
+                                            .unwrap_or_default();
+                                        let base_value = wounds.initial() + 2 * ko_value;
+                                        let max_value = base_value + wounds.advances() + wounds.modifier();
+
+                                        body.row(18.0, |mut row| {
+                                            row.col(|_ui| {}); // Empty first column
+                                            row.col(|ui| {
+                                                ui.label("Max Value:");
+                                            });
+                                            row.col(|ui| {
+                                                ui.add(egui::Label::new(
+                                                    egui::RichText::new(&max_value.to_string())
+                                                        .strong()
+                                                        .color(egui::Color32::from_rgb(70, 130, 180))
+                                                ));
+                                            });
+                                        });
+                                    }
                                 }
 
                                 // Astral Energy (ASP)

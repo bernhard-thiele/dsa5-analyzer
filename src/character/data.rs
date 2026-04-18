@@ -100,17 +100,18 @@ pub struct WoundValue {
     pub other: HashMap<String, serde_json::Value>,
 }
 
-// TODO self.value seem to be the current value! Rethink dealing with it. Maybe "Derived Values" is an okayish group?
 impl WoundValue {
-    /// Get the base value (value field from JSON)
-    pub fn base_value(&self) -> i32 {
-        self.value
-    }
+    /// Get the base value of species (initial field from JSON)
+    pub fn initial(&self) -> i32 { self.initial }
 
-    /// Get advances spent on wounds/health
-    pub fn advances(&self) -> i32 {
-        self.advances
-    }
+    /// Get the current value (value field from JSON)
+    pub fn value(&self) -> i32 { self.value }
+
+    /// Get advances spent on health
+    pub fn advances(&self) -> i32 { self.advances }
+
+    /// Get health modifier (modifier field from JSON)
+    pub fn modifier(&self) -> i32 { self.modifier }
 }
 
 
