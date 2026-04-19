@@ -223,7 +223,7 @@ impl CharacterView {
                     if let Some(status) = &system.status {
                         TableBuilder::new(ui)
                             .id_salt("system_status_values_table")  // Added unique ID
-                            .column(Column::auto().at_least(120.0)) // Status type
+                            .column(Column::auto().at_least(140.0)) // Status type
                             .column(Column::auto().at_least(80.0))  // Property
                             .column(Column::auto().at_least(60.0))  // Value
                             .header(20.0, |mut header| {
@@ -270,7 +270,7 @@ impl CharacterView {
                                                 ui.add(egui::Label::new(
                                                     egui::RichText::new(&base_value.to_string())
                                                         .color(egui::Color32::from_rgb(50, 150, 50))
-                                                ));
+                                                )).on_hover_text("BV = 5 + 2*Ko (human)");
                                             });
                                         });
                                     }
@@ -326,7 +326,7 @@ impl CharacterView {
                                                     egui::RichText::new(&max_value.to_string())
                                                         .strong()
                                                         .color(egui::Color32::from_rgb(70, 130, 180))
-                                                ));
+                                                )).on_hover_text("MV = BV + A + M (human)");
                                             });
                                         });
                                     }
@@ -342,16 +342,39 @@ impl CharacterView {
                                             ));
                                         });
                                         row.col(|ui| {
-                                            ui.label("Base Value:");
+                                            ui.label("Current Value:");
                                         });
                                         row.col(|ui| {
                                             ui.add(egui::Label::new(
-                                                egui::RichText::new(&astral_energy.base_value().to_string())
+                                                egui::RichText::new(&astral_energy.value().to_string())
                                                     .strong()
                                                     .color(egui::Color32::from_rgb(100, 149, 237))
                                             ));
                                         });
                                     });
+
+                                    if let Some(characteristics) = &system.characteristics {
+                                        let kl_value = characteristics
+                                            .kl
+                                            .as_ref()
+                                            .map(|kl| kl.nominal_value())
+                                            .unwrap_or_default();
+                                        // Formula for human wizard (other characters may vary)
+                                        let base_value = 20 + kl_value;
+
+                                        body.row(18.0, |mut row| {
+                                            row.col(|_ui| {}); // Empty first column
+                                            row.col(|ui| {
+                                                ui.label("Base Value:");
+                                            });
+                                            row.col(|ui| {
+                                                ui.add(egui::Label::new(
+                                                    egui::RichText::new(&base_value.to_string())
+                                                        .color(egui::Color32::from_rgb(50, 150, 50))
+                                                )).on_hover_text("BV = 20 + Kl (human wizard)");
+                                            });
+                                        });
+                                    }
 
                                     body.row(18.0, |mut row| {
                                         row.col(|_ui| {}); // Empty first column
@@ -399,6 +422,31 @@ impl CharacterView {
                                             ));
                                         });
                                     });
+
+                                    if let Some(characteristics) = &system.characteristics {
+                                        let kl_value = characteristics
+                                            .kl
+                                            .as_ref()
+                                            .map(|kl| kl.nominal_value())
+                                            .unwrap_or_default();
+                                        // Formula for human wizard (other characters may vary)
+                                        let base_value = 20 + kl_value;
+                                        let loss_value = (astral_energy.rebuy_points() - astral_energy.permanent_loss()).min(0);
+                                        let max_value = base_value + astral_energy.advances() + loss_value;
+
+                                        body.row(18.0, |mut row| {
+                                            row.col(|_ui| {}); // Empty first column
+                                            row.col(|ui| {
+                                                ui.label("Max Value:");
+                                            });
+                                            row.col(|ui| {
+                                                ui.add(egui::Label::new(
+                                                    egui::RichText::new(&max_value.to_string())
+                                                        .color(egui::Color32::from_rgb(50, 150, 50))
+                                                )).on_hover_text("MV = BV + A + min(RP - PL, 0) (human wizard)");
+                                            });
+                                        });
+                                    }
                                 }
 
                                 // Karma Energy (KaP)

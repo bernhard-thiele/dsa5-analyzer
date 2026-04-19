@@ -132,10 +132,8 @@ pub struct AstralEnergyValue {
 }
 
 impl AstralEnergyValue {
-    /// Get the base value (value field from JSON)
-    pub fn base_value(&self) -> i32 {
-        self.value
-    }
+    /// Get the current value (value field from JSON)
+    pub fn value(&self) -> i32 { self.value }
 
     /// Get advances spent on astral energy
     pub fn advances(&self) -> i32 {
