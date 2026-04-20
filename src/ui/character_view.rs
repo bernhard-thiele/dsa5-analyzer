@@ -203,8 +203,6 @@ impl CharacterView {
                                             row.col(|ui| {
                                                 ui.add(egui::Label::new(
                                                     egui::RichText::new(&char_value.nominal_value().to_string())
-                                                        .strong()
-                                                        .color(egui::Color32::from_rgb(70, 130, 180))
                                                 ));
                                             });
                                         });
@@ -247,8 +245,6 @@ impl CharacterView {
                                         row.col(|ui| {
                                             ui.add(egui::Label::new(
                                                 egui::RichText::new(&wounds.value().to_string())
-                                                    .strong()
-                                                    .color(egui::Color32::from_rgb(50, 150, 50))
                                             ));
                                         });
                                     });
@@ -269,8 +265,9 @@ impl CharacterView {
                                             row.col(|ui| {
                                                 ui.add(egui::Label::new(
                                                     egui::RichText::new(&base_value.to_string())
-                                                        .color(egui::Color32::from_rgb(50, 150, 50))
-                                                )).on_hover_text("BV = 5 + 2*Ko (human)");
+                                                        .strong()
+                                                        .color(egui::Color32::from_rgb(70, 130, 180))
+                                                )).on_hover_text("BV = 5 + 2*Ko (human; no advantes/disadvantes considered!)");
                                             });
                                         });
                                     }
@@ -283,7 +280,6 @@ impl CharacterView {
                                         row.col(|ui| {
                                             ui.add(egui::Label::new(
                                                 egui::RichText::new(&wounds.advances().to_string())
-                                                    .color(egui::Color32::from_rgb(50, 150, 50))
                                             ));
                                         });
                                     });
@@ -326,7 +322,7 @@ impl CharacterView {
                                                     egui::RichText::new(&max_value.to_string())
                                                         .strong()
                                                         .color(egui::Color32::from_rgb(70, 130, 180))
-                                                )).on_hover_text("MV = BV + A + M (human)");
+                                                )).on_hover_text("MV = BV + A + M (human; no advantes/disadvantes considered!)");
                                             });
                                         });
                                     }
@@ -347,8 +343,6 @@ impl CharacterView {
                                         row.col(|ui| {
                                             ui.add(egui::Label::new(
                                                 egui::RichText::new(&astral_energy.value().to_string())
-                                                    .strong()
-                                                    .color(egui::Color32::from_rgb(100, 149, 237))
                                             ));
                                         });
                                     });
@@ -370,8 +364,8 @@ impl CharacterView {
                                             row.col(|ui| {
                                                 ui.add(egui::Label::new(
                                                     egui::RichText::new(&base_value.to_string())
-                                                        .color(egui::Color32::from_rgb(50, 150, 50))
-                                                )).on_hover_text("BV = 20 + Kl (human wizard)");
+                                                        .color(egui::Color32::from_rgb(70, 130, 180))
+                                                )).on_hover_text("BV = 20 + Kl (human wizard assumed; no advantes/disadvantes considered!)");
                                             });
                                         });
                                     }
@@ -384,7 +378,6 @@ impl CharacterView {
                                         row.col(|ui| {
                                             ui.add(egui::Label::new(
                                                 egui::RichText::new(&astral_energy.advances().to_string())
-                                                    .color(egui::Color32::from_rgb(50, 150, 50))
                                             ));
                                         });
                                     });
@@ -442,8 +435,9 @@ impl CharacterView {
                                             row.col(|ui| {
                                                 ui.add(egui::Label::new(
                                                     egui::RichText::new(&max_value.to_string())
-                                                        .color(egui::Color32::from_rgb(50, 150, 50))
-                                                )).on_hover_text("MV = BV + A + min(RP - PL, 0) (human wizard)");
+                                                        .strong()
+                                                        .color(egui::Color32::from_rgb(70, 130, 180))
+                                                )).on_hover_text("MV = BV + A + min(RP - PL, 0) (human wizard assumed; no advantes/disadvantes considered!)");
                                             });
                                         });
                                     }
@@ -459,16 +453,37 @@ impl CharacterView {
                                             ));
                                         });
                                         row.col(|ui| {
-                                            ui.label("Base Value:");
+                                            ui.label("Current Value:");
                                         });
                                         row.col(|ui| {
                                             ui.add(egui::Label::new(
-                                                egui::RichText::new(&karma_energy.base_value().to_string())
-                                                    .strong()
-                                                    .color(egui::Color32::from_rgb(100, 149, 237))
+                                                egui::RichText::new(&karma_energy.value().to_string())
                                             ));
                                         });
                                     });
+
+                                    if let Some(characteristics) = &system.characteristics {
+                                        let in_value = characteristics
+                                            .in_
+                                            .as_ref()
+                                            .map(|in_| in_.nominal_value())
+                                            .unwrap_or_default();
+                                        // Formula for blessed ones with lead characteristic intuition (others vary)
+                                        let base_value = 20 + in_value;
+
+                                        body.row(18.0, |mut row| {
+                                            row.col(|_ui| {}); // Empty first column
+                                            row.col(|ui| {
+                                                ui.label("Base Value:");
+                                            });
+                                            row.col(|ui| {
+                                                ui.add(egui::Label::new(
+                                                    egui::RichText::new(&base_value.to_string())
+                                                        .color(egui::Color32::from_rgb(70, 130, 180))
+                                                )).on_hover_text("BV = 20 + In (lead characteristic intuition assumed; no advantes/disadvantes considered!)");
+                                            });
+                                        });
+                                    }
 
                                     body.row(18.0, |mut row| {
                                         row.col(|_ui| {}); // Empty first column
@@ -478,7 +493,6 @@ impl CharacterView {
                                         row.col(|ui| {
                                             ui.add(egui::Label::new(
                                                 egui::RichText::new(&karma_energy.advances().to_string())
-                                                    .color(egui::Color32::from_rgb(50, 150, 50))
                                             ));
                                         });
                                     });
@@ -516,6 +530,32 @@ impl CharacterView {
                                             ));
                                         });
                                     });
+
+                                    if let Some(characteristics) = &system.characteristics {
+                                        let in_value = characteristics
+                                            .in_
+                                            .as_ref()
+                                            .map(|in_| in_.nominal_value())
+                                            .unwrap_or_default();
+                                        // Formula for blessed ones with lead characteristic intuition (others vary)
+                                        let base_value = 20 + in_value;
+                                        let loss_value = (karma_energy.rebuy_points() - karma_energy.permanent_loss()).min(0);
+                                        let max_value = base_value + karma_energy.advances() + loss_value;
+
+                                        body.row(18.0, |mut row| {
+                                            row.col(|_ui| {}); // Empty first column
+                                            row.col(|ui| {
+                                                ui.label("Max Value:");
+                                            });
+                                            row.col(|ui| {
+                                                ui.add(egui::Label::new(
+                                                    egui::RichText::new(&max_value.to_string())
+                                                        .strong()
+                                                        .color(egui::Color32::from_rgb(70, 130, 180))
+                                                )).on_hover_text("MV = BV + A + min(RP - PL, 0) (lead characteristic intuition assumed; no advantes/disadvantes considered!)");
+                                            });
+                                        });
+                                    }
                                 }
                             });
                     } else {

@@ -169,8 +169,8 @@ pub struct KarmaEnergyValue {
 }
 
 impl KarmaEnergyValue {
-    /// Get the base value (value field from JSON)
-    pub fn base_value(&self) -> i32 {
+    /// Get the current value (value field from JSON)
+    pub fn value(&self) -> i32 {
         self.value
     }
 
