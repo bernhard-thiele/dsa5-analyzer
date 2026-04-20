@@ -260,14 +260,14 @@ impl CharacterView {
                                         body.row(18.0, |mut row| {
                                             row.col(|_ui| {}); // Empty first column
                                             row.col(|ui| {
-                                                ui.label("Base Value:");
+                                                ui.label("Base Value (Tbd):");
                                             });
                                             row.col(|ui| {
                                                 ui.add(egui::Label::new(
                                                     egui::RichText::new(&base_value.to_string())
                                                         .strong()
                                                         .color(egui::Color32::from_rgb(70, 130, 180))
-                                                )).on_hover_text("BV = 5 + 2*Ko (human; no advantes/disadvantes considered!)");
+                                                )).on_hover_text("BV = 5 + 2*Ko (human; no advantages/disadvantages considered!)");
                                             });
                                         });
                                     }
@@ -315,14 +315,14 @@ impl CharacterView {
                                         body.row(18.0, |mut row| {
                                             row.col(|_ui| {}); // Empty first column
                                             row.col(|ui| {
-                                                ui.label("Max Value:");
+                                                ui.label("Max Value (Tbd):");
                                             });
                                             row.col(|ui| {
                                                 ui.add(egui::Label::new(
                                                     egui::RichText::new(&max_value.to_string())
                                                         .strong()
                                                         .color(egui::Color32::from_rgb(70, 130, 180))
-                                                )).on_hover_text("MV = BV + A + M (human; no advantes/disadvantes considered!)");
+                                                )).on_hover_text("MV = BV + A + M (human; no advantages/disadvantages considered!)");
                                             });
                                         });
                                     }
@@ -359,13 +359,13 @@ impl CharacterView {
                                         body.row(18.0, |mut row| {
                                             row.col(|_ui| {}); // Empty first column
                                             row.col(|ui| {
-                                                ui.label("Base Value:");
+                                                ui.label("Base Value (Tbd):");
                                             });
                                             row.col(|ui| {
                                                 ui.add(egui::Label::new(
                                                     egui::RichText::new(&base_value.to_string())
                                                         .color(egui::Color32::from_rgb(70, 130, 180))
-                                                )).on_hover_text("BV = 20 + Kl (human wizard assumed; no advantes/disadvantes considered!)");
+                                                )).on_hover_text("BV = 20 + Kl (human wizard assumed; no advantages/disadvantages considered!)");
                                             });
                                         });
                                     }
@@ -430,14 +430,14 @@ impl CharacterView {
                                         body.row(18.0, |mut row| {
                                             row.col(|_ui| {}); // Empty first column
                                             row.col(|ui| {
-                                                ui.label("Max Value:");
+                                                ui.label("Max Value (Tbd):");
                                             });
                                             row.col(|ui| {
                                                 ui.add(egui::Label::new(
                                                     egui::RichText::new(&max_value.to_string())
                                                         .strong()
                                                         .color(egui::Color32::from_rgb(70, 130, 180))
-                                                )).on_hover_text("MV = BV + A + min(RP - PL, 0) (human wizard assumed; no advantes/disadvantes considered!)");
+                                                )).on_hover_text("MV = BV + A + min(RP - PL, 0) (human wizard assumed; no advantages/disadvantages considered!)");
                                             });
                                         });
                                     }
@@ -474,13 +474,13 @@ impl CharacterView {
                                         body.row(18.0, |mut row| {
                                             row.col(|_ui| {}); // Empty first column
                                             row.col(|ui| {
-                                                ui.label("Base Value:");
+                                                ui.label("Base Value (Tbd):");
                                             });
                                             row.col(|ui| {
                                                 ui.add(egui::Label::new(
                                                     egui::RichText::new(&base_value.to_string())
                                                         .color(egui::Color32::from_rgb(70, 130, 180))
-                                                )).on_hover_text("BV = 20 + In (lead characteristic intuition assumed; no advantes/disadvantes considered!)");
+                                                )).on_hover_text("BV = 20 + In (lead characteristic intuition assumed; no advanteges/disadvantes considered!)");
                                             });
                                         });
                                     }
@@ -545,14 +545,14 @@ impl CharacterView {
                                         body.row(18.0, |mut row| {
                                             row.col(|_ui| {}); // Empty first column
                                             row.col(|ui| {
-                                                ui.label("Max Value:");
+                                                ui.label("Max Value (Tbd):");
                                             });
                                             row.col(|ui| {
                                                 ui.add(egui::Label::new(
                                                     egui::RichText::new(&max_value.to_string())
                                                         .strong()
                                                         .color(egui::Color32::from_rgb(70, 130, 180))
-                                                )).on_hover_text("MV = BV + A + min(RP - PL, 0) (lead characteristic intuition assumed; no advantes/disadvantes considered!)");
+                                                )).on_hover_text("MV = BV + A + min(RP - PL, 0) (lead characteristic intuition assumed; no advantages/disadvantages considered!)");
                                             });
                                         });
                                     }
